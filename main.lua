@@ -312,11 +312,31 @@ AddSlider(TabSettings, "Rainbow Speed", "Rainbow_Speed", 1, 10)
 AddRGBPicker(TabSettings, "UI Color 1", "UIColor1")
 AddRGBPicker(TabSettings, "UI Color 2", "UIColor2")
 
--- WM & Binds UI
+-- WM & Binds UI (Умный авто-размер ватермарки)
 local WMScreen = Instance.new("ScreenGui", CoreGui); WMScreen.Name = "GameSync_WM"
-local WMFrame = Instance.new("Frame", WMScreen); WMFrame.Size = UDim2.new(0, 250, 0, 26); WMFrame.Position = UDim2.new(1, -260, 0, 10); WMFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15); Instance.new("UICorner", WMFrame).CornerRadius = UDim.new(0, 6)
-local WMStroke = Instance.new("UIStroke", WMFrame); WMStroke.Thickness = 1.5; local WMGrad = Instance.new("UIGradient", WMStroke); table.insert(dynamicGradientObjects, WMGrad)
-local WMText = Instance.new("TextLabel", WMFrame); WMText.Size = UDim2.new(1, 0, 1, 0); WMText.BackgroundTransparency = 1; WMText.TextColor3 = Color3.new(1,1,1); WMText.Font = Enum.Font.GothamSemibold; WMText.TextSize = 12;
+
+local WMFrame = Instance.new("Frame", WMScreen)
+WMFrame.AnchorPoint = Vector2.new(1, 0)
+WMFrame.Position = UDim2.new(1, -10, 0, 10)
+WMFrame.Size = UDim2.new(0, 0, 0, 32)
+WMFrame.AutomaticSize = Enum.AutomaticSize.X
+WMFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+Instance.new("UICorner", WMFrame).CornerRadius = UDim.new(0, 6)
+
+local WMPad = Instance.new("UIPadding", WMFrame)
+WMPad.PaddingLeft = UDim.new(0, 10)
+WMPad.PaddingRight = UDim.new(0, 10)
+
+local WMStroke = Instance.new("UIStroke", WMFrame); WMStroke.Thickness = 1.5
+local WMGrad = Instance.new("UIGradient", WMStroke); table.insert(dynamicGradientObjects, WMGrad)
+
+local WMText = Instance.new("TextLabel", WMFrame)
+WMText.Size = UDim2.new(0, 0, 1, 0)
+WMText.AutomaticSize = Enum.AutomaticSize.X
+WMText.BackgroundTransparency = 1
+WMText.TextColor3 = Color3.new(1,1,1)
+WMText.Font = Enum.Font.GothamSemibold
+WMText.TextSize = 14
 
 local KBFrame = Instance.new("Frame", WMScreen); KBFrame.Size = UDim2.new(0, 160, 0, 30); KBFrame.Position = UDim2.new(0, 10, 0.5, 0); KBFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15); Instance.new("UICorner", KBFrame).CornerRadius = UDim.new(0, 6)
 local KBStroke = Instance.new("UIStroke", KBFrame); KBStroke.Thickness = 1.5; local KBGrad = Instance.new("UIGradient", KBStroke); table.insert(dynamicGradientObjects, KBGrad)
@@ -457,7 +477,7 @@ table.insert(connections, RunService.RenderStepped:Connect(function()
     WMFrame.Visible = Config.Watermark_Enabled
     if Config.Watermark_Enabled then
         local ping = "N/A"; pcall(function() ping = math.floor(Stats.Network.ServerStatsItem["Data Ping"]:GetValue()) end)
-        WMText.Text = string.format(" GameSync WAR | %s | %d FPS | %s ms", LocalPlayer.Name, #framesData, ping); WMText.TextColor3 = color1
+        WMText.Text = string.format("GameSync WAR | %s | %d FPS | %s ms", LocalPlayer.Name, #framesData, ping); WMText.TextColor3 = color1
     end
     KBFrame.Visible = Config.Keybinds_Enabled
     if Config.Keybinds_Enabled then
@@ -737,5 +757,3 @@ table.insert(connections, UIS.InputBegan:Connect(function(input, processed)
         end
     end
 end))
-
-print("GameSync WAR (V30.3 ALL FIXED) Loaded Successfully.")
