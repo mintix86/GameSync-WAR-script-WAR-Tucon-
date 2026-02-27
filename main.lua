@@ -297,7 +297,7 @@ AddSetting(TabESP, "Faction", "ESP_Faction", nil, "ESP_Faction_Pos", espPosOpts)
 AddSetting(TabMovement, "Teleport", "TP_Enabled", "TP_Bind")
 AddSetting(TabMovement, "Noclip", "Noclip_Enabled", "Noclip_Bind")
 AddSetting(TabMovement, "Fly", "Fly_Enabled", "Fly_Bind")
-AddSlider(TabMovement, "Fly Speed", "Fly_Speed", 10, 600)
+AddSlider(TabMovement, "Fly Speed", "Fly_Speed", 10, 1000)
 
 AddSetting(TabMisc, "Vehicle Fling", "Fling_Enabled", "Fling_Bind")
 AddSlider(TabMisc, "Fling Spin Speed", "Fling_SpinSpeed", 50, 1000)
