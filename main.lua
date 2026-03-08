@@ -18,7 +18,7 @@ local function GetCIELUVColor(percentage)
     return red:Lerp(green, percentage)
 end
 
--- Настройки
+-- Настройки (Добавлены координаты меню и мод для рванки)
 local Config = {
     Menu_Logo = "rbxassetid://0",
     UIColor1 = Color3.fromRGB(199, 149, 237), UIColor2 = Color3.fromRGB(85, 0, 255),
@@ -31,11 +31,13 @@ local Config = {
     ESP_Enabled = false, ESP_TeamCheck = false, ESP_ShowSelf = false, ESP_Box = true, ESP_Skeleton = false, ESP_Tracers = false,
     ESP_Name = true, ESP_Name_Pos = "Top", ESP_HPText = true, ESP_HPText_Pos = "Right",
     ESP_Dist = true, ESP_Dist_Pos = "Bottom", ESP_Faction = true, ESP_Faction_Pos = "Top", ESP_HPBar = true, ESP_HPBar_Pos = "Left",
-    Fling_Enabled = false, Fling_Bind = Enum.KeyCode.V, Fling_SpinSpeed = 500, Fling_MaxDist = 10000, 
+    Fling_Enabled = false, Fling_Bind = Enum.KeyCode.V, Fling_Mode = "Spin", Fling_SpinSpeed = 500, Fling_MaxDist = 10000, 
     VehNoclip_Enabled = false, VehNoclip_Bind = Enum.KeyCode.M,
     Anti_Void = false, Bypass_Chat = false, Anti_Kick = true, Anti_Idle = true, 
     Square_Enabled = false, Square_Bind = Enum.KeyCode.P, Square_Mode = "Toggle", Square_Visual = "3D Wireframe",
-    Menu_Bind = Enum.KeyCode.RightShift, Unbind_Key = Enum.KeyCode.End
+    Menu_Bind = Enum.KeyCode.RightShift, Unbind_Key = Enum.KeyCode.End,
+    -- Позиция меню по умолчанию
+    Menu_PosX = 0.5, Menu_PosY = 0.5, Menu_OffX = -280, Menu_OffY = -220
 }
 
 local UI_NAME = "GameSync_WAR"
@@ -63,6 +65,9 @@ local function SaveConfig(cfgName)
     if RefreshConfigs then RefreshConfigs() end
 end
 
+local ScreenGui -- Предварительное объявление для LoadConfig
+local MainFrame -- Предварительное объявление для LoadConfig
+
 local function LoadConfig(cfgName)
     cfgName = (cfgName == "" or not cfgName) and "default" or cfgName
     local path = FOLDER_NAME.."/"..cfgName..".json"
@@ -81,6 +86,10 @@ local function LoadConfig(cfgName)
         if Config.VehNoclip_Enabled and not Config.Fly_Enabled then
             Config.VehNoclip_Enabled = false
             if UIUpdaters["VehNoclip_Enabled"] then pcall(function() UIUpdaters["VehNoclip_Enabled"](false) end) end
+        end
+        -- Применяем сохраненную позицию UI
+        if MainFrame and Config.Menu_PosX then
+            MainFrame.Position = UDim2.new(Config.Menu_PosX, Config.Menu_OffX, Config.Menu_PosY, Config.Menu_OffY)
         end
     end
 end
@@ -123,8 +132,8 @@ local FOV_Stroke = Instance.new("UIStroke", FOV_Circle); FOV_Stroke.Thickness = 
 local FOV_Grad = Instance.new("UIGradient", FOV_Stroke); FOV_Grad.Color = ColorSequence.new(Config.UIColor1); Instance.new("UICorner", FOV_Circle).CornerRadius = UDim.new(1, 0)
 
 local TweenInfoFast = TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
-local ScreenGui = Instance.new("ScreenGui", CoreGui); ScreenGui.Name = UI_NAME; ScreenGui.ResetOnSpawn = false
-local MainFrame = Instance.new("Frame", ScreenGui); MainFrame.Size = UDim2.new(0, 560, 0, 440); MainFrame.Position = UDim2.new(0.5, -280, 0.5, -220); MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15); MainFrame.BorderSizePixel = 0; MainFrame.Active = true; MainFrame.ClipsDescendants = true; Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 8)
+ScreenGui = Instance.new("ScreenGui", CoreGui); ScreenGui.Name = UI_NAME; ScreenGui.ResetOnSpawn = false
+MainFrame = Instance.new("Frame", ScreenGui); MainFrame.Size = UDim2.new(0, 560, 0, 440); MainFrame.Position = UDim2.new(Config.Menu_PosX, Config.Menu_OffX, Config.Menu_PosY, Config.Menu_OffY); MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 15); MainFrame.BorderSizePixel = 0; MainFrame.Active = true; MainFrame.ClipsDescendants = true; Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 8)
 local MainStroke = Instance.new("UIStroke", MainFrame); MainStroke.Thickness = 1.5; MainStroke.Transparency = 0.3; local MainGradient = Instance.new("UIGradient", MainStroke); table.insert(dynamicGradientObjects, MainGradient)
 local TopBar = Instance.new("Frame", MainFrame); TopBar.Size = UDim2.new(1, 0, 0, 40); TopBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20); TopBar.BorderSizePixel = 0; Instance.new("UICorner", TopBar).CornerRadius = UDim.new(0, 8)
 local TopBarFix = Instance.new("Frame", TopBar); TopBarFix.Size = UDim2.new(1, 0, 0, 8); TopBarFix.Position = UDim2.new(0, 0, 1, -8); TopBarFix.BackgroundColor3 = Color3.fromRGB(20, 20, 20); TopBarFix.BorderSizePixel = 0
@@ -132,7 +141,21 @@ local Logo = Instance.new("ImageLabel", TopBar); Logo.Size = UDim2.new(0, 24, 0,
 local Title = Instance.new("TextLabel", TopBar); Title.Size = UDim2.new(1, -50, 1, 0); Title.Position = UDim2.new(0, 40, 0, 0); Title.Text = "GAMESYNC WAR"; Title.TextColor3 = Color3.new(1,1,1); Title.Font = Enum.Font.GothamBold; Title.TextSize = 14; Title.BackgroundTransparency = 1; Title.TextXAlignment = Enum.TextXAlignment.Left; local TitleGradient = Instance.new("UIGradient", Title); table.insert(dynamicGradientObjects, TitleGradient)
 
 local dragging, dragInput, dragStart, startPos
-TopBar.InputBegan:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true; dragStart = input.Position; startPos = MainFrame.Position; input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end) end end)
+TopBar.InputBegan:Connect(function(input) 
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then 
+        dragging = true; dragStart = input.Position; startPos = MainFrame.Position; 
+        input.Changed:Connect(function() 
+            if input.UserInputState == Enum.UserInputState.End then 
+                dragging = false 
+                -- Сохраняем позицию в конфиг после перетаскивания
+                Config.Menu_PosX = MainFrame.Position.X.Scale
+                Config.Menu_OffX = MainFrame.Position.X.Offset
+                Config.Menu_PosY = MainFrame.Position.Y.Scale
+                Config.Menu_OffY = MainFrame.Position.Y.Offset
+            end 
+        end) 
+    end 
+end)
 UIS.InputChanged:Connect(function(input) if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end end)
 
 local ResizeGrip = Instance.new("TextButton", MainFrame); ResizeGrip.Size = UDim2.new(0, 15, 0, 15); ResizeGrip.Position = UDim2.new(1, -15, 1, -15); ResizeGrip.BackgroundTransparency = 1; ResizeGrip.Text = "◢"; ResizeGrip.TextColor3 = Color3.fromRGB(100, 100, 100); ResizeGrip.TextSize = 14
@@ -269,7 +292,14 @@ AddSetting(TabESP, "HP Bar", "ESP_HPBar", nil, "ESP_HPBar_Pos", espPosOpts); Add
 
 AddSetting(TabMovement, "FreeCam", "FreeCam_Enabled", "FreeCam_Bind"); AddSlider(TabMovement, "FreeCam Speed", "FreeCam_Speed", 10, 500)
 AddSetting(TabMovement, "Teleport", "TP_Enabled", "TP_Bind"); AddSetting(TabMovement, "Noclip", "Noclip_Enabled", "Noclip_Bind"); AddSetting(TabMovement, "Fly", "Fly_Enabled", "Fly_Bind"); AddSlider(TabMovement, "Fly Speed", "Fly_Speed", 10, 600)
-AddSetting(TabMisc, "Vehicle Fling", "Fling_Enabled", "Fling_Bind"); AddSlider(TabMisc, "Fling Spin Speed", "Fling_SpinSpeed", 50, 1000); AddSetting(TabMisc, "Vehicle Noclip (BETA)", "VehNoclip_Enabled", "VehNoclip_Bind"); AddSetting(TabMisc, "GTA Square", "Square_Enabled", "Square_Bind", "Square_Mode"); AddSetting(TabMisc, "Anti-Void", "Anti_Void"); AddSetting(TabMisc, "Bypass Chat Filter", "Bypass_Chat")
+
+-- ОБНОВЛЕННАЯ РВАНКА: Добавлен выбор режима (Spin / BetaBump)
+AddSetting(TabMisc, "Vehicle Fling", "Fling_Enabled", "Fling_Bind", "Fling_Mode", {"Spin", "BetaBump"}); 
+AddSlider(TabMisc, "Fling Spin Speed", "Fling_SpinSpeed", 50, 1000); 
+AddSetting(TabMisc, "Vehicle Noclip (BETA)", "VehNoclip_Enabled", "VehNoclip_Bind"); 
+AddSetting(TabMisc, "GTA Square", "Square_Enabled", "Square_Bind", "Square_Mode"); 
+AddSetting(TabMisc, "Anti-Void", "Anti_Void"); 
+AddSetting(TabMisc, "Bypass Chat Filter", "Bypass_Chat")
 
 AddSetting(TabSettings, "Show Watermark", "Watermark_Enabled"); AddSetting(TabSettings, "Show Keybinds", "Keybinds_Enabled"); AddSetting(TabSettings, "Rainbow UI", "Rainbow_Enabled"); AddSlider(TabSettings, "Rainbow Speed", "Rainbow_Speed", 1, 10); AddRGBPicker(TabSettings, "UI Color 1", "UIColor1"); AddRGBPicker(TabSettings, "UI Color 2", "UIColor2")
 
@@ -321,6 +351,23 @@ end
 
 local r15Bones = {{"Head", "UpperTorso"}, {"UpperTorso", "LowerTorso"}, {"UpperTorso", "LeftUpperArm"}, {"LeftUpperArm", "LeftLowerArm"}, {"LeftLowerArm", "LeftHand"}, {"UpperTorso", "RightUpperArm"}, {"RightUpperArm", "RightLowerArm"}, {"RightLowerArm", "RightHand"}, {"LowerTorso", "LeftUpperLeg"}, {"LeftUpperLeg", "LeftLowerLeg"}, {"LeftLowerLeg", "LeftFoot"}, {"LowerTorso", "RightUpperLeg"}, {"RightUpperLeg", "RightLowerLeg"}, {"RightLowerLeg", "RightFoot"}}
 local r6Bones = {{"Head", "Torso"}, {"Torso", "Left Arm"}, {"Torso", "Right Arm"}, {"Torso", "Left Leg"}, {"Torso", "Right Leg"}}
+
+local function GetPlayerNearMouse()
+    local closestPlayer = nil; local shortestDistance = math.huge; local mousePos = UIS:GetMouseLocation()
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character then
+            local targetPart = p.Character:FindFirstChild("HumanoidRootPart") or p.Character:FindFirstChild("Head")
+            if targetPart then
+                local pos, onScreen = Camera:WorldToViewportPoint(targetPart.Position)
+                if onScreen then
+                    local dist = (Vector2.new(pos.X, pos.Y) - mousePos).Magnitude
+                    if dist <= shortestDistance then shortestDistance = dist; closestPlayer = p end
+                end
+            end
+        end
+    end
+    return closestPlayer
+end
 
 local currentAimTarget = nil
 local function GetClosestTarget()
@@ -389,7 +436,6 @@ table.insert(connections, RunService.RenderStepped:Connect(function(deltaTime)
         end
     end
 
-    -- ИСПРАВЛЕННЫЙ FREECAM С ИДЕАЛЬНОЙ МАТЕМАТИКОЙ УГЛОВ И АВТО-ЛОКОМ
     if Config.FreeCam_Enabled then
         if not isFreecamInitialized then
             Camera.CameraType = Enum.CameraType.Scriptable
@@ -414,7 +460,6 @@ table.insert(connections, RunService.RenderStepped:Connect(function(deltaTime)
             UIS.MouseBehavior = Enum.MouseBehavior.Default
         end
         
-        -- ФИКС УГЛОВ (РЕШАЕТ ПРОБЛЕМУ ПЕРЕВОРОТА КАМЕРЫ И СБИТЫХ ОСЕЙ)
         local camCFrame = CFrame.new(fcPos) * CFrame.Angles(0, fcAngles.Y, 0) * CFrame.Angles(fcAngles.X, 0, 0)
         
         local moveDir = Vector3.zero
@@ -423,7 +468,6 @@ table.insert(connections, RunService.RenderStepped:Connect(function(deltaTime)
         if UIS:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - camCFrame.RightVector end
         if UIS:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + camCFrame.RightVector end
         
-        -- Относительное движение вверх/вниз для полного контроля
         if UIS:IsKeyDown(Enum.KeyCode.Space) then moveDir = moveDir + camCFrame.UpVector end
         if UIS:IsKeyDown(Enum.KeyCode.LeftControl) then moveDir = moveDir - camCFrame.UpVector end
         
@@ -549,20 +593,49 @@ table.insert(connections, RunService.RenderStepped:Connect(function(deltaTime)
         inVehicle = true; local vehicleModel = hum.SeatPart:FindFirstAncestorOfClass("Model"); vehicleRoot = (vehicleModel and vehicleModel.PrimaryPart) or hum.SeatPart
     end
 
+    -- ОБНОВЛЕННАЯ ЛОГИКА РВАНКИ
     if isFlingToggled and Config.Fling_Enabled and FlingTarget and FlingTarget.Character then
-        local targetHrp = FlingTarget.Character:FindFirstChild("HumanoidRootPart") or FlingTarget.Character:FindFirstChild("Torso"); local targetHum = FlingTarget.Character:FindFirstChild("Humanoid")
+        local targetHrp = FlingTarget.Character:FindFirstChild("HumanoidRootPart") or FlingTarget.Character:FindFirstChild("Torso")
+        local targetHum = FlingTarget.Character:FindFirstChild("Humanoid")
         if hrp and targetHrp and targetHum and targetHum.Health > 0 then
-            if (hrp.Position - targetHrp.Position).Magnitude > Config.Fling_MaxDist then isFlingToggled = false; FlingTarget = nil
+            if (hrp.Position - targetHrp.Position).Magnitude > Config.Fling_MaxDist then 
+                isFlingToggled = false; FlingTarget = nil
             else
                 if inVehicle and vehicleRoot then
-                    if flyBodyVel then flyBodyVel:Destroy(); flyBodyVel = nil end; if flyGyro then flyGyro:Destroy(); flyGyro = nil end
-                    vehicleRoot.CFrame = targetHrp.CFrame * CFrame.Angles(math.rad(math.random(0,360)), math.rad(math.random(0,360)), math.rad(math.random(0,360)))
-                    vehicleRoot.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                    local s = Config.Fling_SpinSpeed; vehicleRoot.AssemblyAngularVelocity = Vector3.new(math.random(-s, s), math.random(-s, s), math.random(-s, s))
+                    if flyBodyVel then flyBodyVel.Velocity = Vector3.zero end
+                    if flyGyro then flyGyro.CFrame = vehicleRoot.CFrame end
+                    
+                    if Config.Fling_Mode == "Spin" then
+                        -- Старый добрый метод: крутим машину внутри врага
+                        vehicleRoot.CFrame = targetHrp.CFrame * CFrame.Angles(math.rad(math.random(0,360)), math.rad(math.random(0,360)), math.rad(math.random(0,360)))
+                        vehicleRoot.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                        local s = Config.Fling_SpinSpeed
+                        vehicleRoot.AssemblyAngularVelocity = Vector3.new(math.random(-s, s), math.random(-s, s), math.random(-s, s))
+                    elseif Config.Fling_Mode == "BetaBump" then
+                        -- Новый метод: Спавнимся прямо под врагом и бьем мощным импульсом вверх
+                        local rOffsetX = math.random(-1, 1)
+                        local rOffsetZ = math.random(-1, 1)
+                        
+                        -- CFrame под игроком (на 2.5 стада ниже, чтобы бить в ноги и не улетать под карту)
+                        vehicleRoot.CFrame = targetHrp.CFrame * CFrame.new(rOffsetX, -2.5, rOffsetZ)
+                        
+                        -- Обнуляем вращение чтобы машину не кидало в стороны
+                        vehicleRoot.AssemblyAngularVelocity = Vector3.zero
+                        
+                        -- Вычисляем силу удара
+                        local bumpForce = math.clamp(Config.Fling_SpinSpeed * 2, 500, 3000)
+                        
+                        -- Выстреливаем вверх
+                        vehicleRoot.AssemblyLinearVelocity = Vector3.new(0, bumpForce, 0)
+                    end
                 end
             end
-        else isFlingToggled = false; FlingTarget = nil end
-    else isFlingToggled = false; FlingTarget = nil end
+        else 
+            isFlingToggled = false; FlingTarget = nil 
+        end
+    else 
+        isFlingToggled = false; FlingTarget = nil 
+    end
 
     if not isFlingToggled then
         if Config.Fly_Enabled then
@@ -619,7 +692,7 @@ table.insert(connections, RunService.Stepped:Connect(function()
         if LocalPlayer.Character then for _, part in pairs(LocalPlayer.Character:GetDescendants()) do if part:IsA("BasePart") then part.CanCollide = true end end end; lastNoclipState = false
     end
 
-    if Config.VehNoclip_Enabled and Config.Fly_Enabled then
+    if (Config.VehNoclip_Enabled and Config.Fly_Enabled) or isFlingToggled then
         local char = LocalPlayer.Character
         local hum = char and char:FindFirstChild("Humanoid")
         if hum and hum.SeatPart then
@@ -755,7 +828,7 @@ table.insert(connections, UIS.InputBegan:Connect(function(input, processed)
         end
         
         if Config.Square_Enabled and Config.Square_Mode == "Toggle" and IsBindActive(Config.Square_Bind) then squareToggled = not squareToggled end
-        if IsBindActive(Config.Fling_Bind) and Config.Fling_Enabled then if isFlingToggled then isFlingToggled = false; FlingTarget = nil else local t = CachedTarget; if t then isFlingToggled = true; FlingTarget = t end end end
+        if IsBindActive(Config.Fling_Bind) and Config.Fling_Enabled then if isFlingToggled then isFlingToggled = false; FlingTarget = nil else local t = GetPlayerNearMouse(); if t then isFlingToggled = true; FlingTarget = t end end end
         if IsBindActive(Config.TP_Bind) and Config.TP_Enabled then
             local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
             if hrp then local rp = RaycastParams.new(); rp.FilterDescendantsInstances = {LocalPlayer.Character, PreviewPart}; rp.FilterType = Enum.RaycastFilterType.Exclude; local ray = workspace:Raycast(Mouse.UnitRay.Origin, Mouse.UnitRay.Direction * 1000, rp); hrp.CFrame = CFrame.new((ray and ray.Position or Mouse.Hit.Position) + Vector3.new(0, 3, 0)) end
